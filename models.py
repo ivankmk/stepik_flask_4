@@ -60,9 +60,10 @@ class Student(db.Model):
 	name = db.Column(db.String)
 	email = db.Column(db.String, nullable=True, unique=True)
 	phone = db.Column(db.String, unique=True)
-	bookings = db.relationship('Booking', back_populates='student')
-	requests = db.relationship('Request', back_populates='student')
 	created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+	bookings = db.relationship('Booking', back_populates='student')
+	requests = db.relationship('Request', back_populates='student')	
 
 	def __repr__(self):
 		return '<Student {}>'.format(self.name)
@@ -71,10 +72,11 @@ class Request(db.Model):
 	__tablename__ = 'requests'
 	id = db.Column(db.Integer, primary_key=True)
 	student_id = db.Column(db.Integer, db.ForeignKey('students.id'))
-	student = db.relationship('Student', back_populates='requests')
 	goal = db.Column(db.String)
 	have_time = db.Column(db.String)
 	created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow,  nullable=False)
+
+	student = db.relationship('Student', back_populates='requests')	
 
 	def __repr__(self):
 		return '<Request {}>'.format(self.student)
@@ -84,12 +86,13 @@ class Booking(db.Model):
 	__tablename__ = 'bookings'
 	id = db.Column(db.Integer, primary_key=True)
 	student_id = db.Column(db.Integer, db.ForeignKey('students.id'))
-	student = db.relationship('Student', back_populates='bookings')
 	teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'))
-	teacher = db.relationship('Teacher', back_populates='bookings')
 	timetable_id = db.Column(db.Integer, db.ForeignKey('timetables.id'))
-	timetables = db.relationship('Timetable', back_populates='bookings')
 	created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow,  nullable=False)    
+
+	student = db.relationship('Student', back_populates='bookings')
+	teacher = db.relationship('Teacher', back_populates='bookings')
+	timetables = db.relationship('Timetable', back_populates='bookings')	
 
 	def __repr__(self):
 		return '<Booking {}>'.format(self.student)	

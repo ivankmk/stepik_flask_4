@@ -10,6 +10,7 @@ class userForm(FlaskForm):
     day = HiddenField()
     time = HiddenField()
     teacher_id = HiddenField()
+    timetable_id = HiddenField()
     teacher_name = HiddenField()
     submit = SubmitField('Записаться на пробный урок')
 

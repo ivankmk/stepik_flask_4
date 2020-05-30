@@ -31,8 +31,6 @@ DAYS = {'mon': 'Понедельник',
         'sat': 'Суббота',
         'sun': 'Воскресенье'}
 
-
-
 @app.route('/')
 def index():
     all_profiles = Teacher.query.order_by(func.random()).limit(6).all()
@@ -56,80 +54,97 @@ def render_request():
                            form=form)
 
 
-# @app.route('/request_done/', methods=["POST"])
-# def render_request_done():
-#     form = RequestForm()
+@app.route('/request_done/', methods=["POST"])
+def render_request_done():
+    form = RequestForm()
 
-#     with open("requests.json", "r",  encoding='utf8') as f:
-#         requests = json.load(f)
+    name = form.name.data
+    phone = form.phone.data
+    hours = form.hours_available.data
+    goal = form.goal.data
 
-#     request = {
-#         'name': form.name.data,
-#         'phone': form.phone.data,
-#         'hours': form.hours_available.data,
-#         'goal': form.goal.data
-#     }
+    student = Student(name=name, 
+                      email='{}@school.com'.format(phone),
+                      phone=phone)
+    db.session.add(student)
+    db.session.commit()
 
-#     requests.append(request)
+    lesson_request = Request(student_id = student.id,
+                             goal=goal, 
+                             have_time=hours)
 
-#     with open("requests.json", "w", encoding='utf8') as f:
-#         json.dump(requests, f, ensure_ascii=False)
+    db.session.add(lesson_request)
+    db.session.commit()
 
-#     return render_template(
-#         'request_done.html',
-#         form=form,
-#     )
-
-
-# @app.route('/booking/<int:id>/<day>/<time>/')
-# def booking(id, day, time):
-
-#     all_profiles = json.load(open('data.json'))
-#     profile_data = [
-#         profile for profile in all_profiles if profile['id'] == id][0]
+    return render_template(
+        'request_done.html',
+        form=form,
+    )
 
 
-#     day = DAYS[day]
+@app.route('/booking/<int:id>/<day>/<time>/')
+def booking(id, day, time):
+    profile_data = Teacher.query.get(id)
 
-#     form = userForm()
-#     return render_template('booking.html',
-#                            profile_data=profile_data,
-#                            profile_id=id,
-#                            day=day,
-#                            time=time,
-#                            form=form)
+    
+
+    timetable = Timetable.query.filter(
+        db.and_(
+            Timetable.teacher_id == id,
+            Timetable.weekday == day,
+            Timetable.time == '{}:00:00.000000'.format(time)
+            )
+        ).first()    
+    
+    print(50*'*')
+    print(timetable.id)
+
+    day = DAYS[day]
+
+    form = userForm()
+    return render_template('booking.html',
+                           profile_data=profile_data,
+                           profile_id=id,
+                           day=day,
+                           time=time,
+                           form=form,
+                           timetable_id = timetable.id)
 
 
-# @app.route('/booking_done/', methods=['POST'])
-# def render_booking_done():
-#     form = userForm()
-#     name = form.name.data
-#     phone = form.phone.data
-#     day = form.day.data
-#     time = form.time.data
-#     teacher_id = form.teacher_id.data
-#     teacher_name = form.teacher_name.data
+@app.route('/booking_done/', methods=['POST'])
+def render_booking_done():
+    form = userForm()
+    name = form.name.data
+    phone = form.phone.data
+    day = form.day.data
+    time = form.time.data
+    teacher_id = form.teacher_id.data
+    teacher_name = form.teacher_name.data
+    timetable_id = form.timetable_id.data
 
-#     with open('bookings.json', 'r', encoding='utf8') as f:
-#         bookings = json.load(f)
+    print(50*'*')
+    print(form.timetable_id.data)
 
-#     booking = {
-#         'id': teacher_id,
-#         'name': name,
-#         'phone': phone,
-#         'date': '{},{}:00'.format(day, time)
-#     }
+    student = Student.query.filter(Student.phone == phone).first()
 
-#     bookings.append(booking)
+    if not student:
+        student = Student(name=name, phone=phone)
+        db.session.add(student)
+        db.session.commit()
 
-#     with open('bookings.json', 'w', encoding='utf8') as f:
-#         json.dump(bookings, f, ensure_ascii=False)
+    booking = Booking(student_id = student.id, 
+                      teacher_id=teacher_id,
+                      timetable_id=timetable_id)
 
-#     return render_template('booking_done.html',
-#                            name=name,
-#                            phone=phone,
-#                            time=time,
-#                            day=day)
+    db.session.add(booking)
+    db.session.commit()
+
+
+    return render_template('booking_done.html',
+                           name=name,
+                           phone=phone,
+                           time=time,
+                           day=day)
 
 
 @app.route('/goals/<goal>')
@@ -150,9 +165,8 @@ def profile(id):
         for slot in profile_data.timetables:
             if slot.weekday == slug:
                 times.append(slot.time)
-            slot = {slug: times}
-            time_slots.append(slot)
-    print(time_slots)
+        slot = {slug: times}
+        time_slots.append(slot)
     if not profile_data:
         abort(404)
 

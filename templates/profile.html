@@ -15,7 +15,7 @@
               <h1 class="h2">{{ profile_data.name }}</h1>
               <p>
                 {% for goal in  profile_data.goals %}
-                  <span class="badge badge-secondary mr-2"> {{ goals[goal] }}</span>
+                  <span class="badge badge-secondary mr-2"> {{ goal.goal_text }}</span>
                 {% endfor %}
 
                 Рейтинг: {{ profile_data.rating }} Ставка: {{ profile_data.price }} / час</p>
@@ -28,17 +28,16 @@
               <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
 
               {% for e in time_slots %}
-                  
-              
-              {% for day, times in e %}
-                <h6 class="mt-4">{{ days[day] }}</h6>
-                {% for time in times %}
-
-                        <a href="/booking/{{ profile_data.id }}/{{ day_name }}/{{time.split(':')[0]}}" class="btn btn-outline-success mr-2"> {{ time }} свободно</a> 
-                  
-
+                  {% for day, times in e.items() %}
+                    <h6 class="mt-4">{{ days[day] }}</h6>
+                      {% if times|length < 1 %}
+                        <p>Нет свободных уроков</p>
+                      {% endif %}                    
+                      {% for time in times %}
+                              {% set list1 = time|string %}
+                              <a href="/booking/{{ profile_data.id }}/{{ day }}/{{list1.split(':')[0]}}" class="btn btn-outline-success mr-2"> {{ time }} свободно</a> 
+                      {% endfor %}
                   {% endfor %}
-              {% endfor %}
               {% endfor %}
 
             </section>
