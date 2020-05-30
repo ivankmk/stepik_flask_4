@@ -27,15 +27,18 @@
 
               <h4 class="mb-4 mt-5">Записаться на пробный урок</h4>
 
-
-              {% for day_name, day_schedele in profile_data['free'].items() %}
-                <h6 class="mt-4">{{ days[day_name] }}</h6>
-                  {% for time, status in  day_schedele.items() if status %}
+              {% for e in time_slots %}
+                  
+              
+              {% for day, times in e %}
+                <h6 class="mt-4">{{ days[day] }}</h6>
+                {% for time in times %}
 
                         <a href="/booking/{{ profile_data.id }}/{{ day_name }}/{{time.split(':')[0]}}" class="btn btn-outline-success mr-2"> {{ time }} свободно</a> 
                   
 
                   {% endfor %}
+              {% endfor %}
               {% endfor %}
 
             </section>
